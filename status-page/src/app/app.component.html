@@ -1,0 +1,20 @@
+<div class="container mt-4">
+  <header class="mb-5 text-center">
+    <h1>Estado de los Servicios</h1>
+    <div class="mt-3">
+      <div class="alert" [ngClass]="overallStatusClass()">
+        <h3 class="mb-0">{{ overallStatus() }}</h3>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    @for (service of statusService.serviceStatuses(); track service.name) {
+      <app-status [serviceStatus]="service" />
+    }
+  </main>
+  
+  <footer class="mt-5 text-center text-muted">
+    <p>Uptime de los últimos 90 días. <a href="#">Ver historial completo</a></p>
+  </footer>
+</div> 

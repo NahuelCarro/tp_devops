@@ -1,0 +1,29 @@
+.operational {
+  color: #00a65a;
+  font-weight: bold;
+}
+
+.degraded {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.down {
+  color: #dd4b39;
+  font-weight: bold;
+}
+
+.status-bar {
+  height: 20px;
+  margin-right: 1px;
+  flex-grow: 1;
+}
+
+.progress {
+  height: 10px;
+  border-radius: 5px;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+} 

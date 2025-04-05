@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, interval, map, of, tap } from 'rxjs';
 import { ServiceStatus, StatusType } from '../models/service-status.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -31,9 +32,7 @@ export class StatusService {
     }
   ]);
 
-  // En producción, usa la URL real. Para desarrollo, es mejor usar un proxy (/api)
-  // El proxy debe configurarse en angular.json o proxy.conf.json
-  private apiBaseUrl = '/api'; // Cambiado de 'http://localhost:8000' para evitar CORS
+  private apiBaseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {
     // Configurar verificación periódica cada 30 segundos
@@ -52,10 +51,14 @@ export class StatusService {
     this.checkService('carrera');
   }
 
+  private getEndpoint(serviceName: string): string {
+    const path = serviceName === 'apostador' ? '/apostador/login' : '/carrera/listar';
+    return environment.useProxy ? `${this.apiBaseUrl}${path}` : `${this.apiBaseUrl}${path}`;
+  }
+
   private checkService(serviceName: string): void {
-    // Endpoints para verificar
-    const endpoint = serviceName === 'apostador' ? '/apostador/login' : '/carrera/listar';
-    console.log(`Verificando servicio ${serviceName} en ${this.apiBaseUrl}${endpoint}`);
+    const endpoint = this.getEndpoint(serviceName);
+    console.log(`Verificando servicio ${serviceName} en ${endpoint}`);
     
     // Configuración de encabezados para las solicitudes
     const headers = new HttpHeaders({
@@ -74,7 +77,7 @@ export class StatusService {
       // Para el login, OAuth2 espera datos codificados como form-urlencoded
       const body = 'username=test%40test.com&password=wrong_password';
       
-      this.http.post(`${this.apiBaseUrl}${endpoint}`, body, options)
+      this.http.post(endpoint, body, options)
         .pipe(
           map(response => {
             console.log(`Servicio de apostador respondió con código: ${response.status}`);
@@ -102,15 +105,23 @@ export class StatusService {
             }
             
             return of(StatusType.DOWN);
-          }),
-          tap(status => {
-            console.log(`Estado final de servicio de apostador: ${status}`);
-            this.updateServiceStatus(serviceName, status);
           })
         )
-        .subscribe();
+        .subscribe(status => {
+          const currentStatuses = this.serviceStatuses();
+          const apostadorIndex = currentStatuses.findIndex((s: ServiceStatus) => s.name === 'Servicio de Apostador');
+          if (apostadorIndex !== -1) {
+            const updatedStatuses = [...currentStatuses];
+            updatedStatuses[apostadorIndex] = {
+              ...updatedStatuses[apostadorIndex],
+              status,
+              lastChecked: new Date()
+            };
+            this.serviceStatuses.set(updatedStatuses);
+          }
+        });
     } else {
-      this.http.get(`${this.apiBaseUrl}${endpoint}`, options)
+      this.http.get(endpoint, options)
         .pipe(
           map(response => {
             console.log(`Servicio de carrera respondió con código: ${response.status}`);
@@ -133,13 +144,21 @@ export class StatusService {
             }
             
             return of(StatusType.DOWN);
-          }),
-          tap(status => {
-            console.log(`Estado final de servicio de carrera: ${status}`);
-            this.updateServiceStatus(serviceName, status);
           })
         )
-        .subscribe();
+        .subscribe(status => {
+          const currentStatuses = this.serviceStatuses();
+          const carreraIndex = currentStatuses.findIndex((s: ServiceStatus) => s.name === 'Servicio de Carrera');
+          if (carreraIndex !== -1) {
+            const updatedStatuses = [...currentStatuses];
+            updatedStatuses[carreraIndex] = {
+              ...updatedStatuses[carreraIndex],
+              status,
+              lastChecked: new Date()
+            };
+            this.serviceStatuses.set(updatedStatuses);
+          }
+        });
     }
   }
 
@@ -188,4 +207,4 @@ export class StatusService {
     }
     return StatusType.OPERATIONAL;
   }
-} 
+}

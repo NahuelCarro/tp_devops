@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
+    networks:
+      - app-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -21,8 +23,25 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    networks:
+      - app-network
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}"
+
+  angular:
+    build: 
+      context: ./status-page
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    depends_on:
+      - web
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:

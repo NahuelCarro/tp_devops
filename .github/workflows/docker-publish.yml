@@ -2,14 +2,15 @@ name: Build & Push API + Frontend
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Clona el repo
+      # 1) Clona tu repo
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -24,24 +25,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 4) Build & Push de la API (Dockerfile en raíz)
+      # 4) Build & Push de la API (Dockerfile en la raíz)
       - name: Build & Push API image
         uses: docker/build-push-action@v4
         with:
-          context: .                 # contexto = la raíz del repo
-          file: ./Dockerfile         # el Dockerfile de la API está aquí
-          push: true
+          context: .               
+          file: ./Dockerfile       
+          push: true               
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/api:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}
 
-      # 5) Build & Push del Frontend (Angular)
+      # 5) Build & Push del Frontend (Dockerfile en status-page/)
       - name: Build & Push Frontend image
         uses: docker/build-push-action@v4
         with:
-          context: ./status-page    # carpeta de tu Angular
+          context: ./status-page    
           file: ./status-page/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/status-page:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/status-page:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-status-page:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-status-page:${{ github.sha }}

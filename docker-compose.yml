@@ -13,6 +13,7 @@ services:
       - app-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   web:
     image: ${DOCKERHUB_USER}/devops-api:latest
@@ -27,15 +28,18 @@ services:
       - db
     networks:
       - app-network
+    restart: unless-stopped
 
   angular:
     image: ${DOCKERHUB_USER}/devops-status-page:latest
+    # mapear el puerto 80 del contenedor (Nginx) al 4200 del host
     ports:
-      - "4200:4200"
+      - "4200:80"
     depends_on:
       - web
     networks:
       - app-network
+    restart: unless-stopped
 
 networks:
   app-network:

@@ -15,23 +15,21 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   web:
-    build: .
-    command: ["/wait-for-it.sh", "db:5432", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-    volumes:
-      - .:/app
+    image: ${DOCKERHUB_USER}/devops-api:latest
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
     ports:
       - "8000:8000"
     depends_on:
       - db
     networks:
       - app-network
-    environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}"
 
   angular:
-    build: 
-      context: ./status-page
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USER}/devops-status-page:latest
     ports:
       - "4200:4200"
     depends_on:

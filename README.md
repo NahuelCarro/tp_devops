@@ -26,3 +26,5 @@ Una vez inicializado, se puede utilizar la API y probar los endpoints, para esto
 Si se quiere realizar las pruebas del proyecto se debe ejecutar el comando `docker-compose run web pytest app/tests/` el cual ejecutara todos los tests que se encuentran en la carpeta tests del repositorio.
 
 Para detener el proceso se debe ejecutar `docker-compose down`
+
+![Run Tests](https://github.com/NahuelCarro/tp_devops/actions/workflows/tests.yml/badge.svg)

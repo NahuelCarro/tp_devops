@@ -2,23 +2,23 @@ FROM node:18.19 AS build
 
 WORKDIR /app
 
-# Copy only necessary files for build
+# Copy project files
 COPY package.json angular.json tsconfig*.json ./
 COPY src/ ./src
 
 # Install dependencies
 RUN npm install
 
-# Build the application for production
-RUN npm run build -- --configuration production
+# Build the Angular project explicitly by name in production mode
+RUN npx ng build status-page --configuration production
 
 FROM nginx:alpine
 
-# Copy custom Nginx configuration (overwrites default)
+# Custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built artifacts to Nginx's html directory
-COPY --from=build /app/dist/status-page/ /usr/share/nginx/html/
+# Copy built browser assets into Nginx's html directory
+COPY --from=build /app/dist/status-page/browser/ /usr/share/nginx/html/
 
 # Expose HTTP port
 EXPOSE 80

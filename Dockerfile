@@ -12,11 +12,11 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy only application code
-COPY app/ /app
-COPY wait-for-it.sh /wait-for-it.sh
+# Copy API code into subfolder for correct module path
+COPY app/ ./app
 
-# Strip Windows CRLF endings and make wait-for-it.sh executable
+# Copy wait-for-it and strip Windows CRLF endings
+COPY wait-for-it.sh /wait-for-it.sh
 RUN sed -i 's/\r$//' /wait-for-it.sh && chmod +x /wait-for-it.sh
 
 # Set Python path and expose port

@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: .
-      DATABASE_URL: sqlite:///:memory:
+      DATABASE_URL: "sqlite:///:memory:"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

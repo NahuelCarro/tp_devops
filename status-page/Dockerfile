@@ -2,25 +2,26 @@ FROM node:18.19 AS build
 
 WORKDIR /app
 
-# Copiar solo los archivos necesarios para el build
+# Copy necessary files
 COPY package.json angular.json tsconfig*.json ./
 COPY src/ ./src
 
-# Instalar dependencias de forma reproducible
+# Install dependencies reproducibly
 RUN npm ci
 
-# Construir la aplicación en modo producción
+# Build the application for production
 RUN npm run build -- --configuration production
 
 FROM nginx:alpine
-# Exponer el puerto donde Nginx sirve contenido estático
+
+# Expose port where Nginx serves static content
 EXPOSE 80
 
-# Copiar todos los archivos generados al directorio de Nginx
-COPY --from=build /app/dist/status-page/ /usr/share/nginx/html/
+# Copy built artifacts (browser bundle) to Nginx default html directory
+COPY --from=build /app/dist/status-page/browser/ /usr/share/nginx/html/
 
-# Configuración personalizada de Nginx
+# Custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Arrancar Nginx en primer plano
+# Start Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]

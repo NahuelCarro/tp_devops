@@ -32,6 +32,10 @@ jobs:
     env:
       PYTHONPATH: .
       DATABASE_URL: "sqlite:///:memory:"
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+    steps:
+      PYTHONPATH: .
+      DATABASE_URL: "sqlite:///:memory:"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

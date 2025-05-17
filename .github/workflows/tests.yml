@@ -27,4 +27,4 @@ jobs:
         run: docker-compose build web
 
       - name: Run API tests in container
-        run: docker-compose run --rm web pytest app/tests/
+        run: docker-compose run --rm --no-deps -e DATABASE_URL="sqlite:///:memory:" web pytest app/tests/

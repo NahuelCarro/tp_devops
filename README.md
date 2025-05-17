@@ -27,6 +27,6 @@ Si se quiere realizar las pruebas del proyecto se debe ejecutar el comando `dock
 
 Para detener el proceso se debe ejecutar `docker-compose down`
 
-Prueba!!!
+Test Status:
 
-![Run Tests](https://github.com/NahuelCarro/tp_devops/actions/workflows/tests.yml/badge.svg)
+[![Run Tests (main)](https://github.com/NahuelCarro/tp_devops/actions/workflows/tests.yml/badge.svg?branch=main&cache=false)](https://github.com/NahuelCarro/tp_devops/actions/workflows/tests.yml)

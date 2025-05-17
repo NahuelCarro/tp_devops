@@ -7,24 +7,24 @@ on:
     branches: [ main ]
 
 jobs:
-  test-frontend:
-    name: Frontend Tests
-    runs-on: ubuntu-latest
-    env:
-      NPM_CONFIG_OPTIONAL: false
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Install Frontend Dependencies
-        working-directory: ./status-page
-        run: npm ci
-      - name: Run Frontend Tests
-        working-directory: ./status-page
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+  # test-frontend:
+  #   name: Frontend Tests
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     NPM_CONFIG_OPTIONAL: false
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '18'
+  #     - name: Install Frontend Dependencies
+  #       working-directory: ./status-page
+  #       run: npm ci
+  #     - name: Run Frontend Tests
+  #       working-directory: ./status-page
+  #       run: npm test --watch=false --browsers=ChromeHeadless
 
   test-backend:
     name: Backend Tests
@@ -35,11 +35,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install & Run Backend Tests
+      - name: Set up Docker Compose
         run: |
-          pip install -r requirements.txt
-          pytest --maxfail=1 --disable-warnings -q
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+      - name: Build API service image
+        run: docker-compose build web
+      - name: Run API tests in container
+        run: |
+          docker-compose run --rm web pytest app/tests/

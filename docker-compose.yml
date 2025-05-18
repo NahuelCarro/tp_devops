@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:13
@@ -14,25 +12,44 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "postgresql", "service": "postgres-db"}]'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   web:
-    image: ${DOCKERHUB_USER}/devops-api:latest
+    build: .
+    # image: ${DOCKERHUB_USER}/devops-api:latest
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - DD_AGENT_HOST=datadog-agent
+      - DD_LOGS_INJECTION=true
+      - DD_SERVICE=devops-api
+      - DD_ENV=desarrollo
+      - DD_VERSION=1.0.0
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "python", "service": "devops-api"}]'
 
   angular:
-    image: ${DOCKERHUB_USER}/devops-status-page:latest
-    # mapear el puerto 80 del contenedor (Nginx) al 4200 del host
+    build: ./status-page
+    # image: ${DOCKERHUB_USER}/devops-status-page:latest
     ports:
       - "4200:80"
     depends_on:
@@ -40,6 +57,38 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "nginx", "service": "devops-frontend"}]'
+
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest
+    container_name: dd-agent
+    pid: host
+    environment:
+      DD_API_KEY: ${DD_API_KEY}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_DOCKER_LABELS_AS_TAGS: '{"com.datadoghq.ad.logs": "service"}'
+      DD_TAGS: 'env:desarrollo'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
+      angular:
+        condition: service_started
 
 networks:
   app-network:

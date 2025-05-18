@@ -14,35 +14,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2) (Opcional) Prepara Buildx
+      # 2) Configura QEMU para emulación multi-arquitectura
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      # 3) Prepara Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # 3) Login a Docker Hub
+      # 4) Login a Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 4) Build & Push de la API (Dockerfile en la raíz)
+      # 5) Build & Push de la API (Dockerfile en la raíz) - Multi-arquitectura
       - name: Build & Push API image
         uses: docker/build-push-action@v4
         with:
           context: .               
           file: ./Dockerfile       
-          push: true               
+          push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-api:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}
 
-      # 5) Build & Push del Frontend (Dockerfile en status-page/)
+      # 6) Build & Push del Frontend (Dockerfile en status-page/) - Multi-arquitectura
       - name: Build & Push Frontend image
         uses: docker/build-push-action@v4
         with:
           context: ./status-page    
           file: ./status-page/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-status-page:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-status-page:${{ github.sha }}

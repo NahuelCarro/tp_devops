@@ -53,3 +53,7 @@ def crear_caballos_iniciales():
         session.rollback()
     finally:
         session.close()
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}

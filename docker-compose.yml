@@ -22,8 +22,8 @@ services:
       start_period: 10s
 
   web:
-    build: .
-    # image: ${DOCKERHUB_USER}/devops-api:latest
+    # build: .
+    image: ${DOCKERHUB_USER}/devops-api:latest
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -48,8 +48,8 @@ services:
       com.datadoghq.ad.logs: '[{"source": "python", "service": "devops-api"}]'
 
   angular:
-    build: ./status-page
-    # image: ${DOCKERHUB_USER}/devops-status-page:latest
+    # build: ./status-page
+    image: ${DOCKERHUB_USER}/devops-status-page:latest
     ports:
       - "4200:80"
     depends_on:

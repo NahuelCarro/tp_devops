@@ -29,7 +29,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 5) Build & Push de la API (Dockerfile en la raíz) - Multi-arquitectura
+      # 5) Build & Push de la API (Dockerfile en la raíz) - Multi-arquitectura con cache
       - name: Build & Push API image
         uses: docker/build-push-action@v4
         with:
@@ -37,11 +37,13 @@ jobs:
           file: ./Dockerfile       
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-api:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}
 
-      # 6) Build & Push del Frontend (Dockerfile en status-page/) - Multi-arquitectura
+      # 6) Build & Push del Frontend (Dockerfile en status-page/) - Multi-arquitectura con cache
       - name: Build & Push Frontend image
         uses: docker/build-push-action@v4
         with:
@@ -49,6 +51,8 @@ jobs:
           file: ./status-page/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-status-page:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-status-page:${{ github.sha }}

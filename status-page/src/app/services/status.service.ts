@@ -48,11 +48,40 @@ export class StatusService {
 
   private checkServices(): void {
     this.checkService('apostador');
-    this.checkService('carrera');
+    this.checkService('listarCarrera');
+    this.checkService('crearCarrera');
+  }
+
+  private mapHttpError(httpError: number): StatusType {
+    switch (httpError) {
+      case 0:
+        // CORS o sin conexión
+        return StatusType.DOWN;
+      case 400:
+        return StatusType.DEGRADED;
+      case 401:
+        return StatusType.DOWN;
+      default:
+        return StatusType.DOWN;
+    }
   }
 
   private getEndpoint(serviceName: string): string {
-    const path = serviceName === 'apostador' ? '/apostador/login' : '/carrera/listar';
+    var path = null;
+    switch (serviceName) {
+    case "apostador":
+      path = '/apostador/login';
+      break;
+    case "listarCarrera":
+      path = '/carrera/listar';
+      break;
+    case "crearCarrera":
+      path = '/carrera/crear';
+      break;
+    default:
+      console.log("Ha ocurrido un error");
+  }
+
     return environment.useProxy ? `${this.apiBaseUrl}${path}` : `${this.apiBaseUrl}${path}`;
   }
 
@@ -87,24 +116,7 @@ export class StatusService {
             console.log(`Error en servicio de apostador: ${error.status} - ${error.message}`);
             console.log('Detalles del error:', error);
             
-            // Si hay error 401 o 422, está funcionando (error de credenciales esperado)
-            if (error.status === 401 || error.status === 422) {
-              return of(StatusType.OPERATIONAL);
-            } 
-            
-            // CORS generalmente produce status 0 - lo tratamos como servicio caído
-            if (error.status === 0) {
-              console.error('Error de conexión al servicio de apostador. Probable problema de CORS.');
-              console.error('Solución: Agrega middleware CORS a tu API o configura un proxy en Angular.');
-              return of(StatusType.DOWN);
-            }
-            
-            // Otros errores HTTP
-            if (error.status >= 400 && error.status < 500) {
-              return of(StatusType.DEGRADED);
-            }
-            
-            return of(StatusType.DOWN);
+            return of(this.mapHttpError(error.status));
           })
         )
         .subscribe(status => {
@@ -112,15 +124,60 @@ export class StatusService {
           const apostadorIndex = currentStatuses.findIndex((s: ServiceStatus) => s.name === 'Servicio de Apostador');
           if (apostadorIndex !== -1) {
             const updatedStatuses = [...currentStatuses];
+            // Actualizar historial y uptime
+            const newHistory = [
+              ...updatedStatuses[apostadorIndex].uptimeHistory.slice(1),
+              { timestamp: new Date(), status }
+            ];
+            const operationalDays = newHistory.filter(h => h.status === StatusType.OPERATIONAL).length;
             updatedStatuses[apostadorIndex] = {
               ...updatedStatuses[apostadorIndex],
               status,
-              lastChecked: new Date()
+              lastChecked: new Date(),
+              uptimeHistory: newHistory,
+              uptime: (operationalDays / newHistory.length) * 100
             };
             this.serviceStatuses.set(updatedStatuses);
           }
         });
-    } else {
+    } else if(serviceName === 'crearCarrera') {
+      const body = 'fecha=2025-01-01';
+
+      this.http.post(endpoint, body, options)
+        .pipe(
+          map(response => {
+            console.log(`Servicio de carrera respondió con código: ${response.status}`);
+            return StatusType.OPERATIONAL;
+          }),
+          catchError(error => {
+            console.log(`Error en servicio de carrera: ${error.status} - ${error.message}`);
+            console.log('Detalles del error:', error);
+            
+            return of(this.mapHttpError(error.status));
+          })
+        )
+        .subscribe(status => {
+          const currentStatuses = this.serviceStatuses();
+          const carreraIndex = currentStatuses.findIndex((s: ServiceStatus) => s.name === 'Servicio de Carrera');
+          if (carreraIndex !== -1) {
+            const updatedStatuses = [...currentStatuses];
+            // Actualizar historial y uptime
+            const newHistory = [
+              ...updatedStatuses[carreraIndex].uptimeHistory.slice(1),
+              { timestamp: new Date(), status }
+            ];
+            const operationalDays = newHistory.filter(h => h.status === StatusType.OPERATIONAL).length;
+            updatedStatuses[carreraIndex] = {
+              ...updatedStatuses[carreraIndex],
+              status,
+              lastChecked: new Date(),
+              uptimeHistory: newHistory,
+              uptime: (operationalDays / newHistory.length) * 100
+            };
+            this.serviceStatuses.set(updatedStatuses);
+          }
+        });
+    } else if(serviceName === 'listarCarrera') {
       this.http.get(endpoint, options)
         .pipe(
           map(response => {
@@ -131,19 +188,7 @@ export class StatusService {
             console.log(`Error en servicio de carrera: ${error.status} - ${error.message}`);
             console.log('Detalles del error:', error);
             
-            // CORS generalmente produce status 0 - lo tratamos como servicio caído
-            if (error.status === 0) {
-              console.error('Error de conexión al servicio de carrera. Probable problema de CORS.');
-              console.error('Solución: Agrega middleware CORS a tu API o configura un proxy en Angular.');
-              return of(StatusType.DOWN);
-            }
-            
-            // Otros errores HTTP
-            if (error.status >= 400 && error.status < 500) {
-              return of(StatusType.DEGRADED);
-            }
-            
-            return of(StatusType.DOWN);
+            return of(this.mapHttpError(error.status));
           })
         )
         .subscribe(status => {
@@ -151,49 +196,22 @@ export class StatusService {
           const carreraIndex = currentStatuses.findIndex((s: ServiceStatus) => s.name === 'Servicio de Carrera');
           if (carreraIndex !== -1) {
             const updatedStatuses = [...currentStatuses];
+            // Actualizar historial y uptime también para listarCarrera
+            const newHistory = [
+              ...updatedStatuses[carreraIndex].uptimeHistory.slice(1),
+              { timestamp: new Date(), status }
+            ];
+            const operationalDays = newHistory.filter(h => h.status === StatusType.OPERATIONAL).length;
             updatedStatuses[carreraIndex] = {
               ...updatedStatuses[carreraIndex],
               status,
-              lastChecked: new Date()
+              lastChecked: new Date(),
+              uptimeHistory: newHistory,
+              uptime: (operationalDays / newHistory.length) * 100
             };
             this.serviceStatuses.set(updatedStatuses);
           }
         });
-    }
-  }
-
-  private updateServiceStatus(serviceName: string, status: StatusType): void {
-    const services = this.serviceStatuses();
-    const serviceIndex = services.findIndex(s => 
-      s.name === (serviceName === 'apostador' ? 'Servicio de Apostador' : 'Servicio de Carrera')
-    );
-    
-    if (serviceIndex !== -1) {
-      const updatedService = { ...services[serviceIndex] };
-      
-      // Actualizar historial
-      updatedService.uptimeHistory.push({
-        timestamp: new Date(),
-        status
-      });
-      
-      if (updatedService.uptimeHistory.length > 90) {
-        updatedService.uptimeHistory.shift();
-      }
-      
-      // Calcular porcentaje de uptime
-      const operationalCount = updatedService.uptimeHistory.filter(
-        h => h.status === StatusType.OPERATIONAL
-      ).length;
-      
-      updatedService.uptime = (operationalCount / updatedService.uptimeHistory.length) * 100;
-      updatedService.status = status;
-      updatedService.lastChecked = new Date();
-      
-      // Actualizar el signal con el nuevo estado
-      const updatedServices = [...services];
-      updatedServices[serviceIndex] = updatedService;
-      this.serviceStatuses.set(updatedServices);
     }
   }
 

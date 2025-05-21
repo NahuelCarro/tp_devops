@@ -9,6 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class StatusService {
   // Usar signals para estado reactivo en Angular 18
+  //Comentario de prueba
   public serviceStatuses = signal<ServiceStatus[]>([
     {
       name: 'Servicio de Apostador',

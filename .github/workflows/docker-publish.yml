@@ -12,8 +12,19 @@ jobs:
 
     strategy:
       matrix:
-        target: [api, frontend]
-        arch: [linux/amd64, linux/arm64]
+        include:
+          - target: api
+            arch: linux/amd64
+            arch_tag: amd64
+          - target: api
+            arch: linux/arm64
+            arch_tag: arm64
+          - target: frontend
+            arch: linux/amd64
+            arch_tag: amd64
+          - target: frontend
+            arch: linux/arm64
+            arch_tag: arm64
 
     steps:
       - name: Checkout code
@@ -51,4 +62,5 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/devops-${{ matrix.target }}:cache,mode=max
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-${{ matrix.target }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/devops-${{ matrix.target }}:${{ github.sha }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-${{ matrix.target }}:${{ github.sha }}-${{ matrix.arch_tag }}
+

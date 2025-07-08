@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
   useProxy: false,
-  apiUrl: 'http://localhost:8000',  // Conexión directa en Docker
+  apiUrl: 'https://tp-devops-8gv1.onrender.com/',  // Conexión directa en Docker
 };

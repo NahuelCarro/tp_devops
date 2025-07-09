@@ -18,9 +18,9 @@ RUN npm config set proxy $HTTP_PROXY \
     && npm config set https-proxy $HTTPS_PROXY \
     && npm config set registry ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org/} \
     && npm config set strict-ssl ${NPM_CONFIG_STRICT_SSL:-false} \
-    && npm config set timeout ${NPM_CONFIG_TIMEOUT:-100000} \
-    && npm config set network-timeout 100000 \
-    && npm config set maxsockets 1
+    && npm config set fetch-timeout ${NPM_CONFIG_FETCH_TIMEOUT:-100000} \
+    && npm config set fetch-retry-mintimeout ${NPM_CONFIG_FETCH_RETRY_MINTIMEOUT:-20000} \
+    && npm config set fetch-retry-maxtimeout ${NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT:-120000}
 
 # Install dependencies with additional reliability flags
 RUN npm install --verbose --no-audit --no-fund --maxsockets=1

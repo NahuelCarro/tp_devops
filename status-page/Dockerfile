@@ -1,4 +1,4 @@
-FROM node:16.20-alpine AS build
+FROM node:18.19-alpine AS build
 
 WORKDIR /app
 
@@ -6,8 +6,9 @@ WORKDIR /app
 COPY package.json angular.json tsconfig*.json ./
 COPY src/ ./src
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install dependencies with specific npm version for compatibility
+RUN npm install -g npm@10.2.4 && \
+    npm install --legacy-peer-deps --force
 
 # Build the Angular project explicitly by name in production mode
 RUN npx ng build status-page --configuration production

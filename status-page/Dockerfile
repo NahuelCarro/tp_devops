@@ -1,11 +1,4 @@
-FROM node:18.19 AS build
-
-# Add build arguments for proxy and npm config
-ARG HTTP_PROXY
-ARG HTTPS_PROXY
-ARG NPM_CONFIG_REGISTRY
-ARG NPM_CONFIG_STRICT_SSL
-ARG NPM_CONFIG_TIMEOUT
+FROM node:16.20-alpine AS build
 
 WORKDIR /app
 
@@ -13,17 +6,8 @@ WORKDIR /app
 COPY package.json angular.json tsconfig*.json ./
 COPY src/ ./src
 
-# Configure npm with proxy and registry settings
-RUN npm config set proxy $HTTP_PROXY \
-    && npm config set https-proxy $HTTPS_PROXY \
-    && npm config set registry ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org/} \
-    && npm config set strict-ssl ${NPM_CONFIG_STRICT_SSL:-false} \
-    && npm config set fetch-timeout ${NPM_CONFIG_FETCH_TIMEOUT:-100000} \
-    && npm config set fetch-retry-mintimeout ${NPM_CONFIG_FETCH_RETRY_MINTIMEOUT:-20000} \
-    && npm config set fetch-retry-maxtimeout ${NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT:-120000}
-
-# Install dependencies with additional reliability flags
-RUN npm install --verbose --no-audit --no-fund --maxsockets=1
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
 # Build the Angular project explicitly by name in production mode
 RUN npx ng build status-page --configuration production

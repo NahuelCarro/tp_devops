@@ -102,9 +102,9 @@ jobs:
       - name: Deploy API
         env:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL_API }}
-        run: curl -fsSL "$HOOK"
+        run: curl -fsSL "$HOOK?imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}"
 
       - name: Deploy Frontend
         env:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL_FRONTEND }}
-        run: curl -fsSL "$HOOK"
+        run: curl -fsSL "$HOOK?imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-frontend:${{ github.sha }}"

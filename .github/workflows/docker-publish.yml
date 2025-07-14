@@ -100,11 +100,13 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy API
-        env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL_API }}
-        run: curl -fsSL "$HOOK&imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}"
+        run: |
+          URL="${{ secrets.RENDER_DEPLOY_HOOK_URL_API }}&imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}"
+          echo "Deploying API with URL: $URL"
+          curl -fsSL "$URL"
 
       - name: Deploy Frontend
-        env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL_FRONTEND }}
-        run: curl -fsSL "$HOOK&imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-frontend:${{ github.sha }}"
+        run: |
+          URL="${{ secrets.RENDER_DEPLOY_HOOK_URL_FRONTEND }}&imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-frontend:${{ github.sha }}"
+          echo "Deploying Frontend with URL: $URL"
+          curl -fsSL "$URL"

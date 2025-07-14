@@ -101,9 +101,14 @@ jobs:
     steps:
       - name: Deploy API
         run: |
-          URL="${{ secrets.RENDER_DEPLOY_HOOK_URL_API }}&imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-api:${{ github.sha }}"
-          echo "Deploying API with URL: $URL"
-          curl -fsSL "$URL"
+          HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL_API }}"
+          SHA="${{ github.sha }}"
+          URL="${HOOK}&imgURL=gastoncuevas/devops-api:${SHA}"
+          echo "GitHub SHA: $SHA"
+          echo "Hook URL length: ${#HOOK}"
+          echo "Full URL length: ${#URL}"
+          echo "Deploying API..."
+          curl -fsSL "$URL" || echo "Curl failed with exit code: $?"
 
       - name: Deploy Frontend
         run: |

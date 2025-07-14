@@ -102,8 +102,9 @@ jobs:
       - name: Deploy API
         run: |
           HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL_API }}"
+          USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
           SHA="${{ github.sha }}"
-          URL="${HOOK}&imgURL=gastoncuevas/devops-api:${SHA}"
+          URL="${HOOK}&imgURL=docker.io/${USERNAME}/devops-api:${SHA}"
           echo "GitHub SHA: $SHA"
           echo "Hook URL length: ${#HOOK}"
           echo "Full URL length: ${#URL}"
@@ -112,6 +113,9 @@ jobs:
 
       - name: Deploy Frontend
         run: |
-          URL="${{ secrets.RENDER_DEPLOY_HOOK_URL_FRONTEND }}&imgURL=${{ secrets.DOCKERHUB_USERNAME }}/devops-frontend:${{ github.sha }}"
+          HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL_FRONTEND }}"
+          USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+          SHA="${{ github.sha }}"
+          URL="${HOOK}&imgURL=docker.io/${USERNAME}/devops-frontend:${SHA}"
           echo "Deploying Frontend with URL: $URL"
           curl -fsSL "$URL"
